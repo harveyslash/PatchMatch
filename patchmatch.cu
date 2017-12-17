@@ -182,7 +182,6 @@ __global__ void patch_match(float *a,
     nnd[row*cols + col] = compute_distance(a,aa,b,bb,rows,cols,channels,patch_size,col,row,init_x,init_y) ; 
     
    
-    
 
     for(int i = 0 ; i < iters; i++){
         for(int jump = jump_size ; jump >0 ; jump /=2){
@@ -195,10 +194,6 @@ __global__ void patch_match(float *a,
 
             //test up 
             if (row - jump >=0){
-
-
-//                 int test_px = best_x; 
-//                 int test_py = best_y - jump; 
                 
                 int test_x = nnf[2*(row*cols + col) + 0 ];
                 int test_y = nnf[2*(row*cols + col) + 1 ] + jump;
@@ -230,10 +225,6 @@ __global__ void patch_match(float *a,
             
             
             if (row + jump < rows){
-
-
-                int test_px = best_x; 
-                int test_py = best_y - jump; 
                 
                 int test_x = nnf[2*(row*cols + col) + 0 ];
                 int test_y = nnf[2*(row*cols + col) + 1 ] - jump;
@@ -265,10 +256,6 @@ __global__ void patch_match(float *a,
             //test left
             if (col - jump >=0){
 
-
-                int test_px = best_x; 
-                int test_py = best_y - jump; 
-                
                 int test_x = nnf[2*(row*cols + col) + 0 ] +jump;
                 int test_y = nnf[2*(row*cols + col) + 1 ];
 
@@ -298,10 +285,6 @@ __global__ void patch_match(float *a,
             
             //test right
             if (col + jump < cols){
-
-
-                int test_px = best_x; 
-                int test_py = best_y - jump; 
                 
                 int test_x = nnf[2*(row*cols + col) + 0 ] -jump;
                 int test_y = nnf[2*(row*cols + col) + 1 ];
@@ -356,18 +339,18 @@ __global__ void patch_match(float *a,
                             &best_x,
                             &best_y,
                             &best_d);
-
                 }           
-
 
         nnf[2*(row*cols + col) + 0] = best_x;
         nnf[2*(row*cols + col) + 1] = best_y;
         nnd[1*(row*cols + col) ] = best_d;
             
         __syncthreads();
-            
+
+
         }
-        
+
+
 
         
     }
