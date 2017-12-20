@@ -1,7 +1,15 @@
 #include <stdio.h>
 #include <curand_kernel.h>
 
-
+__host__ __device__ unsigned int XY_TO_INT(int x, int y) {//r represent the number of 10 degree, x,y - 11 bits, max = 2047, r - max = 36, 6 bits
+	return (((y) << 11) | (x));
+}
+__host__ __device__ int INT_TO_X(unsigned int v) {
+	return (v)&((1 << 11) - 1);
+}
+__host__ __device__ int INT_TO_Y(unsigned int v) {
+	return (v >> 11)&((1 << 11) - 1);
+}
 
 __device__ int get_max(int x,int y){
 
@@ -31,7 +39,8 @@ __device__ float compute_distance(float *a,
 		int bx,
 		int by){
 	int num_points = 0;
-	float pixel_sum = 0;
+	float pixel_sum1 = 0;
+	float pixel_sum2 = 0;
 	float temp_distance = 0; 
 	int curr_pix_ax = 0;
 	int curr_pix_ay = 0;
@@ -57,21 +66,21 @@ __device__ float compute_distance(float *a,
 
 					temp_distance =  a[channels*(curr_pix_ay*cols + curr_pix_ax ) +ch] 
 						- b[channels*(curr_pix_by*cols + curr_pix_bx ) +ch] ;
-					pixel_sum += temp_distance * temp_distance;
+					pixel_sum1 += temp_distance * temp_distance;
 
 
 					temp_distance = aa[channels*(curr_pix_ay*cols + curr_pix_ax ) +ch] 
 						-  bb[channels*(curr_pix_by*cols + curr_pix_bx ) +ch] ;
-					pixel_sum += temp_distance * temp_distance;
+					pixel_sum2 += temp_distance * temp_distance;
 				}
 				num_points ++;
 			}
 		}
 	}
 	if(num_points ==0){
-	printf("HMM");
+		printf("HMM");
 	}
-	return pixel_sum /(float) num_points;
+	return (pixel_sum1+pixel_sum2) /(float) num_points;
 
 }
 
@@ -118,7 +127,7 @@ __device__ void InitcuRand(curandState *state) {//random number in cuda, between
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 	int j = threadIdx.y + blockIdx.y * blockDim.y;
 
-	curand_init(0, j, 0, state);
+	curand_init(i, j, 0, state);
 
 }
 	extern "C" 
@@ -127,6 +136,7 @@ __global__ void patch_match(float *a,
 		float *b, 
 		float *bb,
 		int *nnf,
+		unsigned int *nnf_t,
 		float *nnd,
 		int rows, 
 		int cols , 
@@ -341,4 +351,3 @@ __global__ void patch_match(float *a,
 
 
 }
-

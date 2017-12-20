@@ -162,27 +162,26 @@ class PatchMatch(object):
         :param rand_search_radius: max radius to use in random search
         :return:
         """
-        
         mod = SourceModule(open(os.path.join(package_directory,"patchmatch.cu")).read(),no_extern_c=True)
         patchmatch = mod.get_function("patch_match")
         
         rows = self.A.shape[0]
         cols = self.A.shape[1]
         channels = np.int32(self.A.shape[2])
-        
+        nnf_t = np.zeros(shape=(rows,cols),dtype=np.uint32)
         threads = 20
         
         def get_blocks_for_dim(dim,blocks):
             #if dim % blocks ==0:
             #    return dim//blocks
             return dim// blocks +1 
-
         patchmatch(
             drv.In(self.A),
             drv.In(self.AA),
             drv.In(self.B),
             drv.In(self.BB),
             drv.InOut(self.nnf),
+            drv.InOut(nnf_t),
             drv.InOut(self.nnd),
             np.int32(rows),
             np.int32(cols),
@@ -194,3 +193,6 @@ class PatchMatch(object):
         block=(threads,threads,1),
         grid=(get_blocks_for_dim(rows,threads),
               get_blocks_for_dim(cols,threads)))
+
+
+
